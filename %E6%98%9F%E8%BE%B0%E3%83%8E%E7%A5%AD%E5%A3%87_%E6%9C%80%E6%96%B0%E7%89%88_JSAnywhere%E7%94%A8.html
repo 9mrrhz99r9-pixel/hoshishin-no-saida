@@ -1,0 +1,194 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>星辰ノ祭壇</title><style>
+:root{--bg:#0b0d10;--pn:#12171b;--bd:#2c353d;--ac:#5f9c97;--tx:#d8dde0;--mu:#7d8890;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+#app{max-width:520px;margin:0 auto;padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+button,.c{display:block;background:var(--pn);border:1px solid var(--bd);color:var(--tx);padding:11px;font:inherit;border-radius:3px;width:100%;margin:5px 0;text-align:left}
+button:active{background:#1d2a2b}button:disabled,.g{color:#666;opacity:.45}
+h1{font-size:28px;text-align:center;color:var(--ac);letter-spacing:.15em;margin:30vh 0 30px}h2{font-size:18px;color:var(--ac);margin:8px 0}
+.mu{color:var(--mu);font-size:13px}.r{display:flex;gap:6px}.r>*{flex:1}.ct{text-align:center}
+.bar{height:8px;background:#1b2024;border:1px solid #333;margin:2px 0}.bar i{display:block;height:100%;transition:width .7s ease-out}.h{background:#6b9a8f}.m{background:#587f9f}.e{background:#a05a5a}
+.dead{opacity:.35}.sel{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}.on{background:#1a2a2a;border-color:var(--ac)}
+.bt{padding:8px;border:1px solid var(--bd);border-radius:3px;background:#0d1013}
+.bg0{background:linear-gradient(#0d1013,#16191c)}.bg1{background:linear-gradient(#0a1214,#1c2a2c)}.bg2{background:linear-gradient(#0a0e16,#1b2538)}.bg3{background:linear-gradient(#120a14,#2a1a2e)}
+#lg{height:128px;overflow-y:auto;background:#0a0c0e;border:1px solid var(--bd);padding:6px;font-size:13px;margin:6px 0}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--ac);background:#000c;pointer-events:none;animation:f 1.6s forwards}@keyframes f{0%{opacity:1}70%{opacity:1}100%{opacity:0}}
+.err{border-color:#a05a5a;color:#e0a0a0}
+</style></head><body><div id="app"></div><script>
+const F=Math.floor,R=Math.random,KEY='cthulhu_rpg_v1';
+const CH=[
+{id:'mage',n:'魔術師',hp:150,atk:24,mp:100,sk:[{n:'魔弾',mp:10,t:'e',m:1.5},{n:'破邪の閃光',mp:25,t:'e',m:2.5},{n:'禁忌の一撃',mp:50,t:'e',m:4}]},
+{id:'exo',n:'退魔師',hp:200,atk:16,mp:100,sk:[{n:'結界術',mp:35,t:'gA'},{n:'鉄身の法',mp:30,t:'gS'},{n:'破魔の呪',mp:25,t:'down'}]},
+{id:'pri',n:'神官',hp:130,atk:16,mp:150,sk:[{n:'治癒術',mp:20,t:'hs'},{n:'大いなる祈り',mp:35,t:'ha'},{n:'聖別の光',mp:25,t:'ea',m:1.5}]},
+{id:'cur',n:'呪術師',hp:150,atk:22,mp:100,sk:[{n:'呪撃',mp:15,t:'e',m:1.5},{n:'毒呪',mp:50,t:'pois'},{n:'縛呪',mp:30,t:'para'}]},
+{id:'hun',n:'狂信者',hp:200,atk:16,mp:100,sk:[{n:'異端審判',mp:25,t:'ebs',m:.8},{n:'神意の代行者',mp:30,t:'bua'},{n:'不滅の信仰',mp:30,t:'bug'}]}];
+const IT=[{id:'hp',n:'HP回復薬',e:'HPを50回復',p:50},{id:'mp',n:'MP回復薬',e:'MPを30回復',p:40},{id:'rev',n:'蘇生薬',e:'戦闘不能の味方を最大HP25%で蘇生',p:100},{id:'atk',n:'攻撃強化薬',e:'攻撃力25%上昇(使用者の攻撃2回まで)',p:80},{id:'grd',n:'ダメージ軽減薬',e:'被ダメージ25%軽減(被攻撃2回まで)',p:80}];
+const DF={Easy:{h:7,a:7,r:100},Normal:{h:10,a:10,r:200},Hard:{h:15,a:15,r:300}};
+const S1=(n,k,m,w,cd,e)=>({n,k,m,w,cd,e});
+const BOSS=[
+{id:'ran',n:'ラン＝テゴス',d:'極寒の高地に棲む多肢の異形。',hp:1200,atk:22,r:10,sk:[S1('鉤爪の一撃','s',1.2,[60,40],1),S1('多肢の叩きつけ','s',1.5,[40,60],2)]},
+{id:'ita',n:'イタクァ',d:'吹雪と共に現れる風の旧支配者。',hp:1700,atk:28,r:12,sk:[S1('吹雪の爪','s',1.2,[50,35],1),S1('極寒の突風','a',.7,[30,45],2),S1('凍てつく咆哮','s',.5,[20,20],2,'para')]},
+{id:'tin',n:'ティンダロスの猟犬',d:'尖った角から現れる時空の狩人。',hp:1600,atk:43,r:13,sk:[S1('鋭角の爪','s',1.5,[30,40]),S1('時空跳躍','s',1,[30,40]),S1('時の侵食','s',.7,[40,20],0,'para')]},
+{id:'has',n:'ハスター',d:'黄衣を纏う名状しがたきもの。',hp:2200,atk:32,r:15,sk:[S1('黄衣の刃','s',1.2,[40,30]),S1('狂気の囁き','s',.8,[30,40],0,'para'),S1('黄衣の波動','a',.6,[30,30])]},
+{id:'cth',n:'クトゥルフ',d:'ルルイエに眠る深海の大祭司。',hp:4000,atk:40,r:17,sk:[S1('巨腕の一撃','s',1.5,[25,20],1),S1('深淵の震撃','a',.9,[60,70]),S1('精神侵蝕','s',.8,[15,10],2,'para')]},
+{id:'nya',n:'ニャルラトホテプ',d:'千の貌を持つ這い寄る混沌。',hp:4000,atk:44,r:19,sk:[S1('無貌の神','s',1.5,[24,24]),S1('闇をさまようもの','pa2',0,[24,24]),S1('赤の女王','mp30',0,[24,24]),S1('月に吠えるもの','a',.8,[25,25]),S1('這い寄る混沌','chs',0,[3,3])]},
+{id:'yog',id2:1,n:'ヨグ＝ソトース',d:'曲がった時空を司る門にして鍵。',hp:6000,atk:50,r:22,sk:[S1('時空崩壊','a',0.8,[30,30]),S1('次元の裂け目','s',1.2,[40,40]),S1('時間の停滞','s',.6,[30,30],0,'para')]},
+{id:'mis',n:'シュブ＝ニグラス',d:'千の仔を従える、森の黒き母神。',hp:6000,atk:50,r:22,sk:[S1('通常攻撃','s',1,[25,15]),S1('触手の鞭撃','s',1.5,[25,25]),S1('眷属の供犠','sac',0,[20,20]),S1('千の仔の産声','a',.6,[10,10],0,'para'),S1('黒山羊の踏みつけ','s',2,[5,15]),S1('千の仔の召喚','sum',0,[15,15])]},
+{id:'kut',n:'クトゥグア',d:'燃え盛る炎の旧支配者。',hp:7000,atk:58,r:25,sk:[S1('炎の奔流','a',1.4,[35,35]),S1('灼熱の一撃','s',1.8,[40,40]),S1('星炎爆発','a',.8,[25,25])]},
+{id:'aza',n:'アザトース',d:'玉座で微睡む盲目白痴の魔王。',hp:8000,atk:20,r:28,sk:[S1('トルネンブラの音色','tor',0,[15,15]),S1('混沌の脈動','pul',0,[50,50]),S1('記憶の喪失','mem',0,[30,30]),S1('アナイアレイション','ann',0,[5,5])]}];
+(()=>{const t=[5,6,7,8].map(i=>({hp:BOSS[i].hp,atk:BOSS[i].atk,r:BOSS[i].r})),o=['kut','nya','mis','yog'].map(id=>BOSS.find(b=>b.id===id));o.forEach((b,i)=>Object.assign(b,t[i]));BOSS.splice(5,4,...o)})();BOSS.find(b=>b.id==='nya').hp=3800;BOSS.find(b=>b.id==='kut').atk=55;
+const DS={
+mage:'<b>役割：高火力アタッカー</b>（最大MP100）<br>魔弾 MP10：敵単体に攻撃力×1.5<br>破邪の閃光 MP25：敵単体に攻撃力×2.5<br>禁忌の一撃 MP50：敵単体に攻撃力×4.0',
+exo:'<b>役割：防御・弱体役</b>（最大MP100）<br>結界術 MP35：味方全体の被ダメージを35%軽減（2ターン）<br>鉄身の法 MP30：自分の被ダメージを50%軽減（2ターン）<br>破魔の呪 MP25：敵1体の攻撃力を30%低下（2ターン）',
+pri:'<b>役割：回復・全体攻撃</b>（最大MP150）<br>治癒術 MP20：味方1人のHPを回復（Lv1で50、レベルごとに+5）<br>大いなる祈り MP35：味方全体のHPを回復（Lv1で30、レベルごとに+3）<br>聖別の光 MP25：敵全体に攻撃力×1.5',
+cur:'<b>役割：状態異常アタッカー</b>（最大MP100）<br>呪撃 MP15：敵単体に攻撃力×1.5<br>毒呪 MP50：敵1体を毒状態にする<br>縛呪 MP30：敵1体を麻痺させる',
+hun:'<b>役割：バッファー（攻撃・防御の両面から味方を支援）</b>（最大MP100）<br>異端審判 MP25：敵全体に基礎攻撃力×0.8（バフの影響を受けない）<br>神意の代行者 MP30：味方1人の攻撃力を50%上昇（対象が攻撃行動を2回行うまで）<br>不滅の信仰 MP30：味方1人の防御力を50%上昇＝被ダメージ50%軽減（対象が2回ダメージを受けるまで）'};
+const BL={
+ran:'極寒の地に棲む、多肢を備えた異形の獣。飢えを満たすため、目に映る獲物を手当たり次第に喰らい尽くす。幾本もの肢で獲物を捕らえ、貪欲な牙で肉を引き裂く。その食欲に終わりはない。',
+ita:'吹雪とともに現れる風の旧支配者。凍てつく爪で獲物を引き裂き、極寒の突風で周囲を飲み込む。その咆哮は心を竦ませ、身体を動かぬものにする。追い詰められると、風はさらに荒れ狂う。',
+tin:'尖った角度から滲み出す時空の猟犬。鋭角の爪で切り裂き、時空を跳び越えて背後に現れる。時の侵食は、触れた者の動きを凍りつかせる。',
+has:'黄衣を纏う名状しがたき存在。黄衣の刃で獲物を斬り伏せ、狂気の囁きで精神を蝕み、その身体の自由を奪う。さらに、黄衣の波動を放ち、逃れようとする者たちを一斉に呑み込む。',
+cth:'ルルイエに眠る深海の大祭司。目覚めの時を待ちながら、深き海の底より世界を見つめる。巨腕の一撃は大地を砕き、深淵の震撃は万物を揺るがす。精神を侵す深海の影は、意志を蝕み、身体の自由を奪う。眠りを脅かされるほどに、深海は荒れ狂う。',
+kut:'燃え盛る炎の旧支配者。絶え間なく噴き上がる業火で世界を焼き、凄まじい熱を帯びた炎であらゆるものを灰燼に帰す。星炎が爆ぜるとき、紅蓮の火焔が周囲を覆い尽くし、逃げ場なき灼熱の地獄が現出する。',
+nya:'千の貌を持つ、這いよる混沌。無数の化身となって人間社会に紛れ込み、人々を破滅へと導く。狂気の波動は心を蝕み、黒き使者は抗う力を奪い去る。その微笑みの奥に潜む真意を知る者はいない。',
+mis:'千の仔を孕みし森の黒山羊。闇深き森の奥より、無数の異形の仔を産み落とす。蠢く触手は獲物を打ち据え、仔らの産声は生けるものの身体を縛る。眷属を喰らい、その生命を己の糧としながら、黒山羊はさらなる生命を生み続ける。',
+yog:'すべての時と空を束ねる、門にして鍵。過去・現在・未来の境界に遍在し、あらゆる時空と万象の真理を見通す。時空を歪め、次元の裂け目を開き、停滞した時の中に万物を閉じ込める。やがて時間は巻き戻り、刻まれた傷跡さえも存在しなかったことになる。',
+aza:'万物の始まりにして、盲目白痴の神。時間も空間も理も存在しない深淵の玉座に眠り、無数の神々が奏でる不気味な旋律と狂乱の舞に囲まれている。意思なき混沌は万象を侵し、精神を汚染し、記憶と魔力を奪い去る。もしその眠りが破られれば、あらゆる存在は夢の終わりとともに消え失せる。'};
+let G,S={scr:'title'},B=null;
+const newG=()=>({gold:300,items:{hp:1,mp:1,rev:1,atk:1,grd:1},party:['mage','exo','pri'],ch:Object.fromEntries(CH.map(c=>[c.id,{lv:1,xp:0}])),diff:'Normal',clr:{}});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){S.err='セーブに失敗しました。'}}
+function load(){try{const r=localStorage.getItem(KEY);if(!r)return newG();const d=JSON.parse(r);
+if(typeof d.gold!=='number'||d.gold<0)throw 0;
+for(const i of IT){const v=d.items[i.id];if(!Number.isInteger(v)||v<0||v>5)throw 0}
+for(const c of CH){const x=d.ch[c.id];if(!Number.isInteger(x.lv)||x.lv<1||x.lv>30||!Number.isInteger(x.xp)||x.xp<0)throw 0}
+if(!Array.isArray(d.party)||d.party.length<1||d.party.length>3||d.party.some(id=>!CH.find(c=>c.id===id)))throw 0;
+if(!DF[d.diff])d.diff='Normal';if(!d.clr||typeof d.clr!=='object')d.clr={};return d}catch(e){S.err='セーブデータの読み込みに失敗しました。新規データで開始します。';return newG()}}
+const $=id=>document.getElementById(id);
+let W={};const bar=(v,m,c,k)=>{const w=m?Math.max(0,100*v/m):0,p=W[k];W[k]=w;return`<div class="bar"><i class="${c}" data-w="${w}" style="width:${p===undefined?w:p}%"></i></div>`};
+const cst=(c,lv)=>({hp:c.hp+10*(lv-1),atk:c.atk+2*(lv-1)});
+const go=s=>{S.scr=s;draw()};
+function startGame(){G=load();save();go('home')}
+// Save the current persistent game data when the page is backgrounded or closed.
+window.addEventListener('pagehide',()=>{if(G){try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){S.err='セーブに失敗しました。ブラウザの保存領域を利用できません。'}}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&G){try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){S.err='セーブに失敗しました。ブラウザの保存領域を利用できません。'}}});
+// ---- battle core ----
+function lg(t){B.log.push(t);if(B.log.length>20)B.log.shift()}
+const atkOf=u=>{let x=u.atk;if(u.s.up||u.s.pa)x*=1+Math.max(u.s.up?.25:0,u.s.pa?(u.s.pa.r||.25):0);if(u.s.down)x*=1-u.s.down.r;if(u.s.azd)x*=1-u.s.azd;return x};
+const gr=t=>Math.max(t.s.guard?t.s.guard.r:0,t.s.pg?(t.s.pg.r||.25):0);
+function die(u){u.hp=0;u.dead=true;u.s={};if(u.gate){gateOff(1);return}if(u.hound)B.hcd=B.round;if(u.ally){lg(u.n+'は戦闘不能になった');if(B.al.every(a=>a.dead))B.over='lose'}else{lg(u.n+'を撃破！');if(u===B.boss)B.over='win'}}
+function azChk(){if(B.boss.b.id!=='aza'||B.az2||B.boss.hp>B.boss.mhp*.5)return;B.az2=1;B.al.forEach(a=>delete a.s.azd);lg('宇宙の法則が崩壊する。精神汚染が激化した。')}
+function gateOff(ok){const h=B.boss;B.en[1]=null;h.inv=0;B.gcdN=5;if(ok)lg('カルコサの門は砕け散った！ハスターが姿を現した');else{h.atk+=15;lg('門を破壊できなかった…ハスターの攻撃力が上昇した')}}
+function chaseT(){const c=B.chase;if(c&&!c.t.dead&&B.round-c.r0<5)return c.t;const L=B.al.filter(a=>!a.dead);if(!L.length)return null;const t=L[F(R()*L.length)];B.chase={t,r0:B.round};lg(`ティンダロスの猟犬は${t.n}を追跡する！`);return t}
+function hurt(u,d,w){if(B.over||u.dead)return;u.hp=Math.max(0,u.hp-d);lg(`${u.n}は${w}で${d}ダメージ`);if(!u.hp)die(u);else if(u===B.boss)azChk()}
+function hit(a,t,m,bs){if(t.dead||t.inv||B.over)return;let v=(bs?a.atk:atkOf(a))*m*(.9+R()*.2),c=R()<.1;if(c)v*=2;v*=1-gr(t);const d=F(v);t.hp=Math.max(0,t.hp-d);lg(`→${t.n}に${d}ダメージ${c?'(会心!)':''}`);if(!t.hp)die(t);else{if(t.s.pg&&--t.s.pg.n<=0)delete t.s.pg;if(t===B.boss)azChk()}}
+function heal(t,v){if(t.dead)return;const x=Math.min(t.mhp-t.hp,v);t.hp+=x;lg(`→${t.n}のHPが${x}回復`)}
+function startB(bi){const b=BOSS[bi],d=DF[G.diff],h=F(b.hp*d.h/10);
+const bu={n:b.n,b,hp:h,mhp:h,atk:F(b.atk*d.a/10),s:{},cds:{},cnt:0};
+B={al:G.party.map(id=>{const c=CH.find(c=>c.id===id),x=cst(c,G.ch[id].lv);return{n:c.n,c,hp:x.hp,mhp:x.hp,mp:c.mp,mmp:c.mp,atk:x.atk,s:{},ally:1,lv:G.ch[id].lv}}),
+en:b.id==='mis'?[null,bu,null]:b.id==='has'?[bu,null]:[bu],boss:bu,log:[],ph:'sel',round:0,over:0,intro:1,bi,bg:bi==0?1:bi==4?2:bi==9?3:0};
+W={};lg(b.n+'が現れた！');
+if(b.id==='aza'){B.al.forEach(a=>a.s.azd=.3);lg('狂気の視認！味方全体の攻撃力が30%低下した');lg('精神汚染！戦闘終了まで毎ターン5ダメージ')}
+S.scr='battle';begin()}
+function begin(){B.round++;B.ph='sel';B.actor=null;
+if(B.boss.b.id==='aza'){azChk();if(!B.az2)B.al.forEach(a=>{if(!a.dead)a.s.azd=.3});B.al.forEach(a=>{hurt(a,(B.az2?15:5)*(a.s.pulse?2:1),'精神汚染');if(a.s.pulse&&--a.s.pulse<=0)delete a.s.pulse})}
+B.al.forEach(a=>{if(a.dead)return;if(a.s.pois){hurt(a,a.s.pmx?F(a.mhp*a.s.pmx):F(a.hp*.05),'毒');if(!a.dead&&--a.s.pois<=0){delete a.s.pois;delete a.s.pmx}}
+a.skip=false;if(!a.dead&&a.s.para>0){a.skip=true;if(--a.s.para<=0)delete a.s.para;lg(a.n+'は麻痺で動けない')}});
+if(B.over)return;
+if(B.boss.b.id==='tin')chaseT();
+if(!B.al.some(a=>!a.dead&&!a.skip)){lg('行動できる味方がいない…');enemyPhase()}}
+function enemyPhase(){B.en.forEach(e=>{if(e&&!B.over)eAct(e)});if(B.over)return;
+if(B.gcdN>0)B.gcdN--;{const g=B.en[1];if(B.boss.b.id==='has'&&g&&B.round-g.r0>=12)gateOff(0)}
+[...B.al,...B.en].forEach(u=>{if(u&&!u.dead)['down','guard'].forEach(k=>{if(u.s[k]&&--u.s[k].t<=0)delete u.s[k]})});begin()}
+function eAct(e){if(e.dead||e.sr===B.round||e.gate||(e.b.id==='has'&&B.en[1]))return;
+if(e.s.pois){hurt(e,F(e.hp*.05),'毒');if(e.dead||B.over)return;if(--e.s.pois<=0)delete e.s.pois}
+if(e.s.para>0){if(--e.s.para<=0)delete e.s.para;lg(e.n+'は麻痺で動けない');return}
+e.cnt++;const b=e.b,low=e.hp<=e.mhp*.3,w=low?1:0;
+if(b.id==='yog'&&e.cnt%(low?3:5)==0){const v=Math.min(e.mhp-e.hp,F(e.mhp*(low?.03:.05)));e.hp+=v;lg(`時間の巻き戻し！${e.n}のHPが${v}回復`)}
+if(b.id==='cth'&&e.cnt%3==0){e.aoeB=(e.aoeB||0)+.2;lg('クトゥルフの呼び声！全体攻撃の威力が増した');return}
+if(b.id==='has'&&!(B.gcdN>0)&&!B.en[1]){{const gh=F(500*DF[G.diff].h/10);B.en[1]={n:'カルコサの門',hp:gh,mhp:gh,atk:0,s:{},cds:{},cnt:0,gate:1,r0:B.round,b:{sk:[]}}};e.inv=1;lg('カルコサの門が開いた！ハスターは門の向こうへ姿を隠した');return}
+const hd=B.en.some(x=>x&&x.hound&&!x.dead),okk=k=>(k.k!=='sac'||hd)&&(k.k!=='ann'||B.round>3)&&(k.k!=='sum'||B.hcd===undefined||B.round-B.hcd>=10);let ls=b.sk.filter(k=>okk(k)&&!(e.cds[k.n]>0));if(!ls.length)ls=b.sk.filter(okk);
+let r=R()*ls.reduce((a,k)=>a+k.w[w],0),k=ls[0];for(const x of ls){r-=x.w[w];if(r<0){k=x;break}}
+for(const n in e.cds)if(e.cds[n]>0)e.cds[n]--;e.cds[k.n]=k.cd||0;
+lg(`${e.n}の${k.n}！`);
+if(k.k==='sum'){let n=0;[0,2].forEach(i=>{if(!B.en[i]||B.en[i].dead){B.en[i]={n:'黒き仔',hp:100,mhp:100,hound:1,atk:10,s:{},cds:{},cnt:0,sr:B.round,b:{sk:[S1('通常攻撃','s',1,[1,1])]}};n++}});lg(n?`黒き仔が${n}体現れた`:'しかし何も起こらなかった');return}
+if(k.k==='sac'){const i=B.en.findIndex(x=>x&&x.hound&&!x.dead);B.en[i]=null;B.hcd=B.round;const v=Math.min(e.mhp-e.hp,800);e.hp+=v;lg(`黒き仔が1体消滅した。${e.n}のHPが${v}回復`);return}
+if(k.k==='tor'||k.k==='pul'||k.k==='mem'||k.k==='ann'){const L=B.al.filter(a=>!a.dead),pk=l=>l[F(R()*l.length)],p=pk(L);
+if(k.k==='tor'){p.s.para=2;lg(`→${p.n}は麻痺した！`);const o=L.filter(x=>x!==p);if(o.length){const d=pk(o);d.s.down={t:4,r:.5};lg(`→${d.n}の攻撃力が50%低下した`)}}
+else if(k.k==='pul'){p.s.pulse=3;lg(`→${p.n}は精神汚染のダメージが2倍になった`)}
+else if(k.k==='mem'){if(R()<.3){p.mp=0;lg(`→${p.n}のMPが0になった`)}else{L.forEach(a=>{a.mp=Math.max(0,a.mp-20)});lg('→味方全員のMPが20減少した')}}
+else{L.forEach(a=>{a.mp=0});lg('→味方全員のMPが0になった')}return}
+if(k.k==='pa2'||k.k==='mp30'||k.k==='chs'){const L=B.al.filter(a=>!a.dead);
+if(k.k==='pa2'){const c=L.slice();for(let i=Math.min(2,c.length);i>0;i--){const p=c.splice(F(R()*c.length),1)[0];p.s.para=2;lg(`→${p.n}は麻痺した！`)}}
+else if(k.k==='mp30'){const p=L[F(R()*L.length)],v=Math.min(p.mp,30);p.mp-=v;lg(`→${p.n}のMPが${v}減少した`)}
+else{const v=Math.min(e.mhp-e.hp,F(e.mhp*.3));e.hp+=v;lg(`→${e.n}のHPが${v}回復した`);L.forEach(t=>hit(e,t,1));L.forEach(t=>{if(!t.dead){t.s.pois=5;t.s.pmx=.03;lg(`→${t.n}は毒になった`)}})}return}
+const live=B.al.filter(a=>!a.dead),ts=k.k==='a'?live:[e.b.id==='tin'?chaseT():live[Math.floor(Math.random()*live.length)]];
+ts.forEach(t=>{hit(e,t,k.m+(k.k==='a'?(e.aoeB||0):0));if(k.e&&!t.dead&&!B.over){if(k.e==='para'){t.s.para=2;lg(t.n+'は麻痺した！')}else{t.s.down={t:3,r:.25};lg(t.n+'の攻撃力が低下した')}}})}
+// ---- player actions ----
+const sideOf=k=>['e','down','pois','para'].includes(k.t)?'e':['hs','bua','bug'].includes(k.t)?'a':null;
+function pickActor(i){const a=B.al[i];if(a.dead||a.skip||B.ph!=='sel')return;B.actor=a;B.ph='act';draw()}
+function ph(p){B.ph=p;draw()}
+function back(){B.p=null;B.ph=B.actor?'act':'sel';draw()}
+function pAtk(){B.p={t:'atk',side:'e'};ph('tgt')}
+function pSk(i){const k=B.actor.c.sk[i];if(B.actor.mp<k.mp)return;B.p={t:'sk',k,side:sideOf(k)};B.p.side?ph('tgt'):doAct()}
+function pIt(id){if(!G.items[id])return;B.p={t:'it',id,side:id==='rev'?'d':'a'};ph('tgt')}
+function tg(kind,i){if(B.ph!=='tgt')return;const t=kind==='e'?B.en[i]:B.al[i],s=B.p.side;
+if(kind==='e'?(s!=='e'||t.dead||t.inv):(s==='e'||(s==='d')!==!!t.dead))return;doAct(t)}
+function doAct(t){if(B.ph==='busy')return;const p=B.p,a=B.actor;B.ph='busy';B.p=null;const had=a.s.up,hpa=a.s.pa;
+if(p.t==='atk'){lg(`${a.n}の通常攻撃！`);hit(a,t,1)}
+else if(p.t==='sk'){const k=p.k;a.mp-=k.mp;lg(`${a.n}の${k.n}！`);skill(a,k,t)}
+else{if(G.items[p.id]<1){B.ph='act';return}G.items[p.id]--;save();const n=IT.find(i=>i.id===p.id).n;lg(`${a.n}は${n}を${t.n}に使った`);
+if(p.id==='hp')heal(t,50);else if(p.id==='mp'){t.mp=Math.min(t.mmp,t.mp+30);lg('→MPが回復')}
+else if(p.id==='rev'){t.dead=false;t.hp=Math.ceil(t.mhp*.25);t.s={};lg(`→${t.n}が蘇生した`)}
+else if(p.id==='atk'){if(!t.s.pa)t.s.pa={n:2};lg('→攻撃力が上昇(使用者の攻撃2回)')}else{if(!t.s.pg)t.s.pg={n:2};lg('→被ダメージを軽減(被攻撃2回)')}}
+if(hpa&&a.s.pa===hpa&&(p.t==='atk'||(p.t==='sk'&&(p.k.t==='e'||p.k.t==='ea'||p.k.t==='ebs')))&&--hpa.n<=0)delete a.s.pa;
+if(had&&a.s.up===had&&--had.n<=0)delete a.s.up;
+B.al.forEach(x=>{if(!x.dead&&!(x===a&&p.t==='sk'))x.mp=Math.min(x.mmp,x.mp+10)});
+B.ph='sel';B.actor=null;if(!B.over)enemyPhase();draw()}
+function skill(a,k,t){const L=B.al.filter(x=>!x.dead),E=B.en.filter(x=>x&&!x.dead&&!x.inv);
+switch(k.t){case'e':hit(a,t,k.m);break;case'ea':E.forEach(e=>hit(a,e,k.m));break;
+case'hs':heal(t,50+5*(a.lv-1));break;case'ha':L.forEach(x=>heal(x,30+3*(a.lv-1)));break;
+case'gA':L.forEach(x=>x.s.guard={t:2,r:.35});lg('→味方全体の被ダメージ35%軽減');break;
+case'gS':a.s.guard={t:2,r:.5};lg('→被ダメージ50%軽減');break;
+case'down':t.s.down={t:2,r:.3};lg(`→${t.n}の攻撃力が30%低下`);break;
+case'pois':t.s.pois=3;lg(`→${t.n}は毒になった`);break;
+case'para':t.s.para=2;lg(`→${t.n}は麻痺した`);break;
+case'up':a.s.up={n:2};lg('→攻撃力が25%上昇');break;
+case'ebs':E.forEach(x=>hit(a,x,k.m,1));break;
+case'bua':{const p=t.s.pa;if(p)p.r=Math.max(p.r||.25,.5);else t.s.pa={n:2,r:.5};lg(`→${t.n}の攻撃力が50%上昇`)}break;
+case'bug':{const p=t.s.pg;if(p)p.r=Math.max(p.r||.25,.5);else t.s.pg={n:2,r:.5};lg(`→${t.n}の防御力が50%上昇`)}break}}
+function finish(){if(B.over==='win'){if(!B.done){B.done=1;const d=DF[G.diff],v=F(d.r*BOSS[B.bi].r/10);B.gain=v;
+B.res=G.party.map(id=>{const c=G.ch[id],l0=c.lv;c.xp+=v;while(c.lv<30&&c.xp>=c.lv*50+50){c.xp-=c.lv*50+50;c.lv++}if(c.lv>=30)c.xp=0;return{n:CH.find(x=>x.id===id).n,l0,l1:c.lv,xp:c.xp}});G.gold+=v;G.clr[BOSS[B.bi].id+':'+G.diff]=1;save()}S.scr='win'}else S.scr='lose';draw()}
+// ---- views ----
+const stT=u=>[u.s.pois&&'毒',u.s.para&&'麻痺',(u.s.down||u.s.azd)&&'攻↓',u.s.pulse&&'脈動',(u.s.up||u.s.pa)&&'攻↑',(u.s.guard||u.s.pg)&&'軽減'].filter(Boolean).join(' ');
+function draw(){const a=$('app');let h='';
+if(S.scr==='title')h=`<h1>星辰ノ祭壇</h1><button class="ct" onclick="startGame()">開始</button>`;
+else if(S.scr==='home'){h=`${S.err?`<div class="c err" onclick="S.err=0;draw()">${S.err}（タップで閉じる）</div>`:''}<h2>拠点</h2><div class="c">所持金 <b>${G.gold}</b> G</div>
+<div class="c mu">編成：${G.party.map(id=>CH.find(c=>c.id===id).n+' Lv'+G.ch[id].lv).join(' / ')}</div>
+<div class="mu">難易度</div><div class="r">${Object.keys(DF).map(d=>`<button class="ct ${G.diff===d?'on':''}" onclick="G.diff='${d}';save();draw()">${d}</button>`).join('')}</div>
+<button onclick="go('party')">味方編成</button><button onclick="go('boss')">ボス選択</button><button onclick="go('shop')">ショップ</button><button onclick="go('set')">設定</button>`}
+else if(S.scr==='party'){h=`<h2>味方編成（最大3人・選んだ順）</h2>`+CH.map(c=>{const l=G.ch[c.id].lv,x=cst(c,l),i=G.party.indexOf(c.id);return`<button class="${i>=0?'on':''}" onclick="tp('${c.id}')">${i>=0?'['+(i+1)+'] ':''}${c.n}　Lv${l}<br><span class="mu">職業 ${c.n} / HP ${x.hp} / 攻撃力 ${x.atk}</span></button><details class="c mu"><summary>役割・スキルを見る</summary><div style="margin-top:6px">${DS[c.id]}</div></details>`}).join('')+`<button class="ct" onclick="go('home')">戻る</button>`}
+else if(S.scr==='boss'){h=`<h2>ボス選択（${G.diff}）</h2>`+BOSS.map((b,i)=>`<button onclick="S.bi=${i};go('bc')"><b>${b.n}</b>　<span class="mu">${G.diff}</span>${Object.keys(DF).filter(d=>G.clr[b.id+':'+d]).map(d=>` <span style="color:var(--ac)">✔${d}</span>`).join('')}<br><span class="mu">${b.d}</span></button>`).join('')+`<button class="ct" onclick="go('home')">戻る</button>`}
+else if(S.scr==='bc'){const b=BOSS[S.bi];h=`<h2>${b.n}</h2><div class="mu">難易度：${G.diff}</div><div class="c" style="line-height:1.8">${BL[b.id]}</div><div class="c mu">出撃：${G.party.map(id=>CH.find(c=>c.id===id).n+' Lv'+G.ch[id].lv).join(' / ')}</div><div class="mu ct">この相手と戦いますか？</div><button class="ct on" onclick="startB(${S.bi});draw()">戦う</button><button class="ct" onclick="go('boss')">戻る</button>`}
+else if(S.scr==='shop'){h=`<h2>ショップ　${G.gold}G</h2>`+IT.map(i=>{const n=G.items[i.id],ok=n<5&&G.gold>=i.p;return`<button ${ok?'':'disabled'} onclick="buy('${i.id}')"><b>${i.n}</b>　${i.p}G　所持 ${n}/5<br><span class="mu">${i.e}</span>${n>=5?' <span class="mu">(上限)</span>':''}</button>`}).join('')+`<button class="ct" onclick="go('home')">戻る</button>`}
+else if(S.scr==='set')h=`<h2>設定</h2><button onclick="go('cf')">最初からやり直す</button><button class="ct" onclick="go('home')">戻る</button>`;
+else if(S.scr==='cf')h=`<h2>本当にやり直しますか？</h2><p>所持金・レベル・アイテム等のセーブデータがすべて消えます。</p><button onclick="G=newG();save();S.err=0;go('home')">はい、やり直す</button><button class="ct" onclick="go('set')">いいえ</button>`;
+else if(S.scr==='win')h=`<h2>勝利！</h2><div class="c">獲得 <b>${B.gain}</b> G ／ 各自 <b>${B.gain}</b> EXP</div>`+B.res.map(r=>`<div class="c">${r.n}　Lv${r.l0}${r.l1>r.l0?` → <b>Lv${r.l1}</b> レベルアップ！(HP+${10*(r.l1-r.l0)} 攻撃+${2*(r.l1-r.l0)})`:''}<br><span class="mu">次のLvまで経験値 ${r.l1>=30?'MAX':r.xp+' / '+(r.l1*50+50)}</span></div>`).join('')+`<button class="ct" onclick="B=null;go('home')">拠点へ戻る</button>`;
+else if(S.scr==='lose')h=`<h2>敗北…</h2><p class="mu">報酬は得られなかった。</p><button class="ct" onclick="B=null;go('home')">拠点へ戻る</button>`;
+else if(S.scr==='battle')h=rB();
+a.innerHTML=h;requestAnimationFrame(()=>requestAnimationFrame(()=>a.querySelectorAll('.bar i').forEach(i=>i.style.width=i.dataset.w+'%')));const l=$('lg');if(l)l.scrollTop=l.scrollHeight}
+function rB(){const mis=B.boss.b.id==='mis',bs=B.boss,p=B.p,tg_=B.ph==='tgt',es=tg_&&p.side==='e',as=tg_&&p.side!=='e';
+let h=`<div class="bt bg${B.bg}">${B.intro?`<div class="ov">${bs.n}</div>`:''}<div class="ct"><b>${bs.n}</b><br>${bar(bs.hp,bs.mhp,'e','T')}<span class="mu">HP ${bs.hp} / ${bs.mhp}</span>${bs.b.id==='tin'&&B.chase&&!B.over?`<div style="color:#d8a0a0;margin-top:4px">追跡対象：<b>${B.chase.t.n}</b>（残り${Math.max(0,5-(B.round-B.chase.r0))}ターン）</div>`:''}</div>
+<div class="${mis?'':'r'}" style="margin-top:6px${mis?';display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px':''}">${B.en.map((e,i)=>e&&!(e.hound&&e.dead)?`<div class="c ${e.dead?'dead':''} ${es&&!e.dead&&!e.inv?'sel':''}" onclick="tg('e',${i})">${e.n}${e.dead?' 【撃破】':''}${e.inv?' 【門の影】':''}${e.gate?` 残り${Math.max(0,13-(B.round-e.r0))}ターン`:''}<br>${bar(e.hp,e.mhp,'e','e'+i)}<span class="mu">${e.hp}/${e.mhp} ${stT(e)}</span></div>`:mis?'<div></div>':'').join('')}</div>
+<div id="lg">${B.log.map(t=>`<div>${t}</div>`).join('')}</div>`;
+h+=B.al.map((a,i)=>{const can=!a.dead&&!a.skip&&B.ph==='sel',as2=as&&((p.side==='d')===a.dead),cur=B.actor===a;
+return`<div class="c ${a.dead?'dead':''} ${can||as2||cur?'sel':''}" onclick="${as?`tg('a',${i})`:`pickActor(${i})`}">${a.n}${a.dead?' 【戦闘不能】':a.skip?' 【行動不能】':''}${bs.b.id==='tin'&&B.chase&&B.chase.t===a&&!a.dead&&!B.over?' 【追跡】':''} <span class="mu">${stT(a)}</span><br>HP ${a.hp}/${a.mhp}${bar(a.hp,a.mhp,'h','ah'+i)}MP ${a.mp}/${a.mmp}${bar(a.mp,a.mmp,'m','am'+i)}</div>`}).join('')+'</div>';
+if(B.over)h+=`<button class="ct" onclick="finish()">${B.over==='win'?'戦闘に勝利した… 結果へ':'全滅した… 結果へ'}</button>`;
+else if(B.ph==='sel')h+=`<div class="ct mu">行動する味方をタップ</div>`;
+else if(B.ph==='act')h+=`<div class="mu">${B.actor.n}の行動</div><div class="r"><button onclick="pAtk()">通常攻撃</button><button onclick="ph('sk')">スキル</button><button onclick="ph('it')">アイテム</button></div><button class="ct" onclick="B.actor=null;ph('sel')">戻る</button>`;
+else if(B.ph==='sk')h+=B.actor.c.sk.map((k,i)=>`<button ${B.actor.mp<k.mp?'disabled':''} onclick="pSk(${i})">${k.n}　MP${k.mp}</button>`).join('')+`<button class="ct" onclick="ph('act')">戻る</button>`;
+else if(B.ph==='it')h+=IT.map(i=>{const ok=G.items[i.id]>0&&(i.id!=='rev'||B.al.some(a=>a.dead));return`<button ${ok?'':'disabled'} onclick="pIt('${i.id}')">${i.n}　所持 ${G.items[i.id]}<br><span class="mu">${i.e}</span></button>`}).join('')+`<button class="ct" onclick="ph('act')">戻る</button>`;
+else if(tg_)h+=`<div class="ct mu">対象をタップ</div><button class="ct" onclick="back()">キャンセル</button>`;
+if(B.intro){B.intro=0}return h}
+function tp(id){const i=G.party.indexOf(id);if(i>=0){if(G.party.length>1)G.party.splice(i,1)}else if(G.party.length<3)G.party.push(id);save();draw()}
+function buy(id){const i=IT.find(x=>x.id===id);if(G.items[id]>=5||G.gold<i.p)return;G.gold-=i.p;G.items[id]++;save();draw()}
+draw();
+</script></body></html>
