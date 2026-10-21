@@ -173,7 +173,7 @@ else if(p.id==='atk'){if(!t.s.pa)t.s.pa={n:2};lg('→攻撃力が上昇(使用�
 if(hpa&&a.s.pa===hpa&&(p.t==='atk'||(p.t==='sk'&&(p.k.t==='e'||p.k.t==='ea'||p.k.t==='ebs')))&&--hpa.n<=0)delete a.s.pa;
 if(had&&a.s.up===had&&--had.n<=0)delete a.s.up;
 B.al.forEach(x=>{if(!x.dead&&!(x===a&&p.t==='sk'))x.mp=Math.min(x.mmp,x.mp+10)});
-B.ph='sel';B.actor=null;if(!B.over)enemyPhase();draw()}
+B.actor=null;if(!B.over){draw();setTimeout(()=>{B.ph='sel';if(!B.over)enemyPhase();draw()},1000)}else{B.ph='sel';draw()}}
 function skill(a,k,t){const L=B.al.filter(x=>!x.dead),E=B.en.filter(x=>x&&!x.dead&&!x.inv);
 switch(k.t){case'e':hit(a,t,k.m);break;case'ea':E.forEach(e=>hit(a,e,k.m));break;
 case'hs':heal(t,50+5*(a.lv-1));break;case'ha':L.forEach(x=>heal(x,30+3*(a.lv-1)));break;
