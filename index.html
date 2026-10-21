@@ -25,8 +25,6 @@ button,
                "Yu Mincho", serif;
 }
 
-
-
 /* 見出し・ボス名 */
 h2,
 .bt b,
@@ -50,55 +48,35 @@ button b {
 }
 /* ===== 星辰ノ祭壇：禁書風ボタン ===== */
 
-/* 禁書風ボタン */
-button,.c{
-  display:block;
-  background:linear-gradient(135deg,#211b14,#100e0b 55%,#1b1711);
-  border:1px solid #786344;
-  color:#d8c9aa;
-  padding:11px;
-  font:inherit;
-  border-radius:2px;
-  width:100%;
-  margin:5px 0;
-  text-align:left;
-  box-shadow:inset 0 0 0 1px #30271b;
-}
-
-/* タップ時：色だけ変化 */
-button:active{
-  background:#28372e;
-}
-
-/* 使用不可 */
-button:disabled,.g{
-  color:#777064;
-  opacity:.45;
+/* 禁書風：二重線のボタン枠 */
+button,
+.c {
+  border: 1px solid #625f52;
+  outline: 1px solid rgba(98, 95, 82, 0.65);
+  outline-offset: -5px;
+  border-radius: 1px;
 }
 
 /* 選択中 */
-.sel{
-  border-color:#7ca69a;
-  box-shadow:inset 0 0 0 1px #304b40;
+.sel {
+  border-color: #78958a;
+  outline-color: rgba(120, 149, 138, 0.65);
 }
 
-.on{
-  background:linear-gradient(135deg,#1b302b,#101c19);
-  border-color:#7ca69a;
-  color:#e0e7d8;
-}
-.dead{
-  opacity:.35;
+/* 選択中の背景 */
+.on {
+  background: linear-gradient(135deg, #1b302b, #101c19);
+  border-color: #78958a;
+  outline-color: rgba(120, 149, 138, 0.65);
+  color: #e0e7d8;
 }
 
 /* 無効状態 */
 button:disabled,
 .g {
-  border-color: #40372a;
   color: #777064;
-  box-shadow: none;
+  opacity: 0.45;
 }
-
 </style></head><body><div id="app"></div><script>
 const F=Math.floor,R=Math.random,KEY='cthulhu_rpg_v1';
 const CH=[
