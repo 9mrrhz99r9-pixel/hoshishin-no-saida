@@ -48,6 +48,46 @@ button b {
 .bt .mu {
   font-family: "Noto Sans JP", sans-serif;
 }
+/* ===== 星辰ノ祭壇：禁書風ボタン ===== */
+button,
+.c {
+  background: linear-gradient(
+    135deg,
+    #211b14 0%,
+    #100e0b 50%,
+    #1b1711 100%
+  );
+  border: 1px solid #786344;
+  border-radius: 2px;
+  color: #d8c9aa;
+  box-shadow:
+    inset 0 0 0 1px #30271b,
+    inset 0 0 12px rgba(0, 0, 0, 0.45);
+}
+
+/* 選択中・選択済み */
+button.on,
+button.sel,
+.sel,
+.on {
+  background: linear-gradient(
+    135deg,
+    #1b302b,
+    #101c19
+  );
+  border-color: #6e9b89;
+  color: #e0e7d8;
+  box-shadow: inset 0 0 0 1px #304b40;
+}
+
+/* 無効状態 */
+button:disabled,
+.g {
+  border-color: #40372a;
+  color: #777064;
+  box-shadow: none;
+}
+
 </style></head><body><div id="app"></div><script>
 const F=Math.floor,R=Math.random,KEY='cthulhu_rpg_v1';
 const CH=[
